@@ -1,0 +1,74 @@
+logger:
+  project_name: hjkim/Graph-atom-mapping
+  experiment_id: FS
+  tags: alpha_release
+  
+task:
+  dataset: Atom_mapping # dataset name
+  description: syntheticdata # description about dataset.
+  type: Finetunning # task type
+  metric: cross entropy # validation metric
+  labels: lower bound #
+
+
+#train 시 pretrain 들고올지 말지 정하는 부분
+train_from_pretrained: False
+
+#test 시 checkpoint 들고오는 path
+checkpoint_path: /nfsdata/home/hjkim/forward_synthesis/MolCLR_FN/checkpoints/23Feb03_154203/epoch=63-val_correctness=0.169.ckpt
+#/nfsdata/home/hjkim/forward_synthesis/MolCLR_FN/checkpoints/23Feb03_154203/epoch=52-val_correctness=0.164.ckpt
+
+##### neptune ai표시할 부분들
+model_name: sim-train-2_models
+neptune_api_token: 'eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiI5YTdkN2YyZi1lMzA1LTQ4NjAtYWNmMi00ZWRhNGIxODUzOWEifQ=='
+#####
+train_params:
+    monitor: val_correctness
+    monitor_mode: max
+    save_top_k: 3
+    patience: 15
+    use_weight_loss: False
+    seed: 42
+    optimizer:
+        name: AdamW
+        lr: 0.00001
+
+    scheduler:
+        name:
+
+model_params:
+    FN:
+        epochs: 100                     # total number of epochs
+        eval_every_n_epochs: 1          # validation frequency
+        fine_tune_from: pretrained_gcn  # sub directory of pre-trained model in ./ckpt
+        log_every_n_steps: 50           # print training log frequency
+        fp16_precision: False           # float precision 16 (i.e. True/False)
+        init_lr: 0.0005                 # initial learning rate for the prediction head
+        init_base_lr: 0.0001            # initial learning rate for the base GNN encoder
+        weight_decay: 1e-6              # weight decay of Adam
+        dropout: 0.0
+        activation: relu
+        symmetric: True
+
+        #model
+        num_layer: 2                  # number of graph conv layers
+        embed_dim: 300                  # embedding dimension in graph conv layers
+        feat_dim: 512                 # output feature dimention
+        drop_ratio: 0.3               # dropout ratio
+        pool: mean                    # readout pooling (i.e., mean/max/add)
+#      loss:
+        temperature: 0.1                      # temperature of NT-Xent loss
+        use_cosine_similarity: True           # whether to use cosine similarity in NT-Xent loss (i.e. True/False)
+
+dataset_params:
+  seed:
+  num_workers:
+  dataset_name:
+  
+dataset:
+  train_path: '/nfsdata/home/hjkim/forward_synthesis/MolCLR/data/preprocessed_data_hj/preprocessed_data_cleaved_brics_USPTO490k_train.json'
+  valid_path: '/nfsdata/home/hjkim/forward_synthesis/MolCLR/data/preprocessed_data_hj/preprocessed_data_cleaved_brics_USPTO490k_val.json'
+  test_path: '/nfsdata/home/hjkim/forward_synthesis/MolCLR/data/preprocessed_data_hj/preprocessed_data_cleaved_brics_USPTO490k_test.json'
+
+gpu: [1]                  # training GPU
+task_name: CS                 # name of learning benchmar: cosine similarity
